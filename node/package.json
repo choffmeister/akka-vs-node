@@ -1,0 +1,7 @@
+{
+  "name": "akkavsnode",
+  "private": true,
+  "dependencies": {
+    "mongodb": "^1.4.28"
+  }
+}
