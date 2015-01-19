@@ -9,7 +9,7 @@ import scala.concurrent._
 case class User(
   id: BSONObjectID = BSONObjectID("00" * 12),
   name: String,
-  age: Int) extends BaseModel
+  description: String) extends BaseModel
 
 class UserTable(database: Database, collection: BSONCollection)(implicit executor: ExecutionContext) extends Table[User](database, collection) {
   implicit val reader = UserBSONFormat.Reader
@@ -21,7 +21,7 @@ object UserBSONFormat {
     def read(doc: BSONDocument): User = User(
       id = doc.getAs[BSONObjectID]("_id").get,
       name = doc.getAs[String]("name").get,
-      age = doc.getAs[Int]("age").get
+      description = doc.getAs[String]("description").get
     )
   }
 
@@ -29,7 +29,7 @@ object UserBSONFormat {
     def write(obj: User): BSONDocument = BSONDocument(
       "_id" -> obj.id,
       "name" -> obj.name,
-      "age" -> obj.age
+      "description" -> obj.description
     )
   }
 }
