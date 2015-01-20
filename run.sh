@@ -1,31 +1,35 @@
 #!/bin/bash
 
+WARMUP_DURATION="5"
+DURATION="15"
+
 # clear results
 cat /dev/null > ./results.txt
+echo -e "System\tConcurrency\tRequestsPerSec\tLatencyAvg\tLatency50\tLatency90\tLatency99" >>./results.txt
 
 # start servers
-cd akka && ./target/pack/bin/server &
+cd akka && ./target/pack/bin/server >/dev/null &
 akka_pid=$!
-cd node && node ./server.js &
+cd node && node ./server.js >/dev/null &
 node_pid=$!
 
 # warm up servers
-sleep 5
-wrk -c1 -t1 -d5 http://localhost:8080/api/user > /dev/null
-wrk -c1 -t1 -d5 http://localhost:8081/api/user > /dev/null
-sleep 5
+sleep 1
+wrk -c1 -t1 "-d$WARMUP_DURATION" http://localhost:8080/api/user >/dev/null
+wrk -c1 -t1 "-d$WARMUP_DURATION" http://localhost:8081/api/user >/dev/null
+sleep 1
 
-for i in 1 2 3 5 8 13 21 34 55 89 144; do
-  echo "Akka $i"
-  wrk "-c$i" "-t$i" -d15 http://localhost:8080/api/user >> ./results.txt
+for CONCURRENCY in 1 2 3 5 8 13 21 34 55 89 144; do
+  echo -e -n "akka\t$CONCURRENCY\t" >>./results.txt
+  wrk --script ./report.lua "-c$CONCURRENCY" "-t$CONCURRENCY" "-d$DURATION" http://localhost:8080/api/user 2>>./results.txt
   sleep 1
-  echo "NodeJS $i"
-  wrk "-c$i" "-t$i" -d15 http://localhost:8081/api/user >> ./results.txt
+  echo -e -n "node\t$CONCURRENCY\t" >>./results.txt
+  wrk --script ./report.lua "-c$CONCURRENCY" "-t$CONCURRENCY" "-d$DURATION" http://localhost:8081/api/user 2>>./results.txt
   sleep 1
 done
 
 # stop servers
-sleep 5
+sleep 1
 kill -9 $akka_pid
 kill -9 $node_pid
 
