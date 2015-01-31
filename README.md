@@ -8,7 +8,7 @@ You must have [MongoDB](http://www.mongodb.org/), [SBT](http://www.scala-sbt.org
 
 ~~~ bash
 $ mongo localhost:27017/akkavsnode fill.js
-$ cd akka && sbt pack
-$ cd node && npm install
+$ cd akka && sbt pack && cd ..
+$ cd node && npm install && cd ..
 $ ./run.sh
 ~~~
